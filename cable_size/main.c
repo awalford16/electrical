@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include "cable_data.h"
 
 #define SUPPLY_VOLTAGE 230
@@ -49,16 +50,34 @@ void calcCableCapacity(struct Installation *inst)
     inst->real_current = (inst->design_current / (c_a * c_g));
 }
 
-int main()
+const char *getArgOrDefault(int argc, char *argv[], int index, const char *defaultValue)
 {
+    if (index < argc)
+    {
+        return argv[index];
+    }
+    else
+    {
+        return defaultValue;
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc < 3)
+    {
+        printf("Usage: %s <power (W)> <length (m)>\n", argv[0]);
+        return 1; // Exit with an error code
+    }
+
     struct Installation test;
 
-    test.power = 5000;
-    test.length = 10;
-    test.insulated = false;
+    test.power = atoi(argv[1]);
+    test.length = atoi(argv[2]);
 
-    test.amb_temp = 30;
-    test.grouping = 2;
+    test.insulated = strcasecmp(getArgOrDefault(argc, argv, 3, "false"), "true") == 0;
+    test.amb_temp = atoi(getArgOrDefault(argc, argv, 4, "25"));
+    test.grouping = atoi(getArgOrDefault(argc, argv, 4, "1"));
 
     // Calculate design current and CB size
     calcDesignCurrent(&test);
