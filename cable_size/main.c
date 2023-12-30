@@ -53,8 +53,11 @@ int main(int argc, char *argv[])
     test.insulation = atoi(getArgOrDefault(argc, argv, 3, "0"));
     test.amb_temp = atoi(getArgOrDefault(argc, argv, 4, "25"));
     test.grouping = atoi(getArgOrDefault(argc, argv, 5, "1"));
+
     test.lighting_circuit = false;
     test.bs3036_fuse = false;
+    test.cable = THERMOPLASTIC;
+    test.method = CONDUIT;
 
     // Calculate design current and CB size
     float i_b = calculateDesignCurrent(test.power);
@@ -72,13 +75,13 @@ int main(int argc, char *argv[])
     float i_t = calculateCableCapacity(i_n, &test);
     printf("Real Current: %.1fA\n", i_t);
 
-    float cable_size = lookupCableSize(i_t);
+    float cable_size = lookupCableSize(i_t, test.method);
     printf("Cable Size: %.1fmm\n", cable_size);
 
     // Determine voltage drop
     // Permissable Vd is 6.9V for lighting, 11.5V for power
     float v_d = calculateVoltageDrop(cable_size, i_b, test.length);
-    printf("Votage Drop: %.1fV\n", v_d);
+    printf("Votage Drop: %.2fV\n", v_d);
 
     if (v_d < PERMISSABLE_VD_POWER && !test.lighting_circuit)
     {

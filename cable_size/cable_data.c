@@ -2,13 +2,30 @@
 #include <stddef.h>
 #include "cable_data.h"
 
-float searchData(struct CableData *data, size_t size, float value)
+float selectField(struct CableData *data, int field)
+{
+    switch (field)
+    {
+    case 1:
+        return data->ref_a;
+    case 2:
+        return data->ref_b;
+    case 3:
+        return data->ref_c;
+    // Add more cases for other data types as needed
+    default:
+        printf("Unsupported field\n");
+        return -1;
+    }
+}
+
+float searchData(struct CableData *data, size_t size, float value, int field)
 {
     for (int i = 0; i < size; i++)
     {
         if (data[i].id == value)
         {
-            return data[i].value;
+            return selectField(&data[i], field);
         }
     }
 
@@ -22,24 +39,25 @@ float checkUnderValue(struct CableData *data, size_t size, float value)
     {
         if (value < data[i].id)
         {
-            return data[i].value;
+            return data[i].ref_a;
         }
     }
 
     return -1;
 }
 
-float lookupTemperatureValue(int searchId)
+float lookupTemperatureValue(int searchId, int ref)
 {
-    // Considering just 70 degree thermoplastic
-    struct CableData data[] = {
-        {25, 1.03},
-        {30, 1.00},
-        {35, 0.94},
-        {40, 0.87}};
+    // indexes: 1 = thermoplastic, 2 = thermosetting
+    struct CableData data[] =
+        {
+            {25, 1.03, 1.02},
+            {30, 1.00, 1.00},
+            {35, 0.94, 0.96},
+            {40, 0.87, 0.91}};
 
     size_t l = sizeof(data) / sizeof(data[0]);
-    return searchData(&data, l, searchId);
+    return searchData(&data, l, searchId, ref);
 }
 
 // Insulation ratings 50-100, 100-200, 200-400
@@ -76,31 +94,48 @@ float lookupGroupingValue(int searchId)
         {6, 0.57}};
 
     size_t l = sizeof(data) / sizeof(data[0]);
-    return searchData(&data, l, searchId);
+    return searchData(&data, l, searchId, 1);
 }
 
-float lookupCableSize(float currentDemand)
+float lookupCableSize(float currentDemand, int ref)
 {
-    // Only considering 70 degrees thermoplastic clipped direct
+    // indexes: #1 = thermally insulating, #2 = conduit, #3 = clipped
     struct CableData data[] = {
-        {16, 1.0},
-        {20, 1.5},
-        {27, 2.5},
-        {37, 4.0},
-        {47, 6.0},
-        {65, 10.0},
-        {87, 16.0},
-        {114, 25.0},
-        {141, 35.0},
-        {382, 50.0}};
+        {1.0, 11, 13.5, 15.5},
+        {1.5, 14.5, 17.5, 20},
+        {2.5, 20, 24, 27},
+        {4.0, 26, 32, 37},
+        {6.0, 34, 41, 47},
+        {10.0, 46, 57, 65},
+        {16.0, 56, 68, 87},
+        {25.0, 80, 101, 114}};
+    // {20, 1.5},
+    // {27, 2.5},
+    // {37, 4.0},
+    // {47, 6.0},
+    // {65, 10.0},
+    // {87, 16.0},
+    // {114, 25.0},
+    // {141, 35.0},
+    // {382, 50.0}};
 
     size_t l = sizeof(data) / sizeof(struct CableData);
-    return checkUnderValue(data, l, currentDemand);
+    for (int i = 0; i < l; i++)
+    {
+        if (currentDemand < selectField(&data[i], ref))
+        {
+            return data[i].id;
+        }
+    }
+
+    return -1;
 }
 
 // Determine Vd in mV/m based on cable CSA
 float lookupVoltageDropFactor(float csa)
 {
+    // For 2 cable single-phase AC, all values are same up to 16mm
+    // Irrelevant of installation method
     struct CableData data[] = {
         {1.5, 29},
         {2.5, 18},
@@ -110,5 +145,5 @@ float lookupVoltageDropFactor(float csa)
         {16, 2.8}};
 
     size_t l = sizeof(data) / sizeof(data[0]);
-    return searchData(&data, l, csa);
+    return searchData(&data, l, csa, 1);
 }

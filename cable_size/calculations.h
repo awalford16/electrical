@@ -1,7 +1,21 @@
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifndef CALCULATIONS_H
 #define CALCULATIONS_H
+
+enum CableType
+{
+    THERMOPLASTIC = 1,
+    THERMOSETTING = 2
+};
+
+enum InstallationMethod
+{
+    THERMALLY_INSULATING_WALL = 1,
+    CONDUIT = 2,
+    CLIPPED = 3
+};
 
 struct Installation
 {
@@ -13,6 +27,8 @@ struct Installation
     int protection_device;
     bool lighting_circuit;
     bool bs3036_fuse;
+    enum CableType cable;
+    enum InstallationMethod method;
 };
 
 #define SUPPLY_VOLTAGE 230

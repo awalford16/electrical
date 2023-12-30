@@ -13,7 +13,7 @@ float calculateCableCapacity(float designCurrent, struct Installation *installat
 {
     float c_a, c_g, c_i, c_f = 1; // Declare cable factors
     c_g = lookupGroupingValue(installation->grouping);
-    c_a = lookupTemperatureValue(installation->amb_temp);
+    c_a = lookupTemperatureValue(installation->amb_temp, installation->cable);
     c_i = lookupInsulationValue(installation->insulation);
 
     if (installation->bs3036_fuse)
