@@ -4,50 +4,26 @@
 #include <errno.h>
 #include <string.h>
 #include "cable_data.h"
+#include "calculations.h"
 
 #define SUPPLY_VOLTAGE 230
+#define PERMISSABLE_VD_POWER 11.5
+#define PERMISSABLE_VD_LIGHTING 6.9
 
-struct Installation
+int findCircuitBreakerSize(float design_current)
 {
-    int power;
-    float length;
-    bool insulated;
-    int grouping;
-    float amb_temp;
-    int protection_device;
-    float design_current;
-    float real_current;
-};
-
-void calcDesignCurrent(struct Installation *inst)
-{
-    inst->design_current = inst->power / SUPPLY_VOLTAGE;
-}
-
-int findCircuitBreakerSize(struct Installation *inst)
-{
-    int circuitBreakers[6] = {6, 10, 20, 32, 40, 60};
+    int circuitBreakers[7] = {6, 10, 20, 32, 40, 50, 60};
 
     for (int i = 0; i < sizeof(circuitBreakers); i++)
     {
-        if (inst->design_current < circuitBreakers[i])
+        if (design_current < circuitBreakers[i])
         {
-            inst->protection_device = circuitBreakers[i];
-            return 0;
+            return circuitBreakers[i];
         }
     }
 
     errno = ERANGE;
     return -1;
-}
-
-void calcCableCapacity(struct Installation *inst)
-{
-    float c_a, c_g, c_i = 1; // Declare cable factors
-    c_g = lookupGroupingValue(inst->grouping);
-    c_a = lookupTemperatureValue(inst->amb_temp);
-
-    inst->real_current = (inst->design_current / (c_a * c_g));
 }
 
 const char *getArgOrDefault(int argc, char *argv[], int index, const char *defaultValue)
@@ -74,30 +50,42 @@ int main(int argc, char *argv[])
 
     test.power = atoi(argv[1]);
     test.length = atoi(argv[2]);
-
-    test.insulated = strcasecmp(getArgOrDefault(argc, argv, 3, "false"), "true") == 0;
+    test.insulation = atoi(getArgOrDefault(argc, argv, 3, "0"));
     test.amb_temp = atoi(getArgOrDefault(argc, argv, 4, "25"));
-    test.grouping = atoi(getArgOrDefault(argc, argv, 4, "1"));
+    test.grouping = atoi(getArgOrDefault(argc, argv, 5, "1"));
+    test.lighting_circuit = false;
+    test.bs3036_fuse = false;
 
     // Calculate design current and CB size
-    calcDesignCurrent(&test);
-    int cb = findCircuitBreakerSize(&test);
+    float i_b = calculateDesignCurrent(test.power);
+    printf("Design Current: %.1fA\n", i_b);
 
-    if (cb == -1)
+    int i_n = findCircuitBreakerSize(i_b);
+    if (i_n == -1)
     {
         perror("Error getting Circuit Breaker Size");
         return -1;
     }
+    printf("Circuit Breaker Size: %dA\n", i_n);
 
     // Calculate i_t based on grouping/temp/insulated
-    calcCableCapacity(&test);
+    float i_t = calculateCableCapacity(i_n, &test);
+    printf("Real Current: %.1fA\n", i_t);
 
-    float cable_size = lookupCableSize(test.real_current);
-
-    printf("Design Current: %.1fA\n", test.design_current);
-    printf("Circuit Breaker Size: %dA\n", cb);
-    printf("Real Current: %.1fA\n", test.real_current);
+    float cable_size = lookupCableSize(i_t);
     printf("Cable Size: %.1fmm\n", cable_size);
+
+    // Determine voltage drop
+    // Permissable Vd is 6.9V for lighting, 11.5V for power
+    float v_d = calculateVoltageDrop(cable_size, i_b, test.length);
+    printf("Votage Drop: %.1fV\n", v_d);
+
+    if (v_d < PERMISSABLE_VD_POWER && !test.lighting_circuit)
+    {
+        printf("Voltage drop is acceptable");
+    }
+
+    // Determine PFC - enough to trip breaker?
 
     return 0;
 }
