@@ -83,9 +83,13 @@ int main(int argc, char *argv[])
     float v_d = calculateVoltageDrop(cable_size, i_b, test.length);
     printf("Votage Drop: %.2fV\n", v_d);
 
-    if (v_d < PERMISSABLE_VD_POWER && !test.lighting_circuit)
+    if ((v_d < PERMISSABLE_VD_POWER && !test.lighting_circuit) || (v_d < PERMISSABLE_VD_LIGHTING && test.lighting_circuit))
     {
         printf("Voltage drop is acceptable");
+    }
+    else
+    {
+        printf("Voltage drop is not permissable");
     }
 
     // Determine PFC - enough to trip breaker?
