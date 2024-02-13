@@ -10,6 +10,11 @@ enum CableType
     THERMOSETTING = 2
 };
 
+enum Fuse
+{
+    BS60898 = 1
+};
+
 enum InstallationMethod
 {
     THERMALLY_INSULATING_WALL = 1,
@@ -36,5 +41,7 @@ struct Installation
 float calculateDesignCurrent(int power);
 float calculateCableCapacity(float designCurrent, struct Installation *installation);
 float calculateVoltageDrop(float csa, float designCurrent, float length);
+float calculateZs(float csa, float z_e, struct Installation *installation);
+float calculateAdiabaticEquation(float z_s);
 
 #endif

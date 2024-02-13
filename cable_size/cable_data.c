@@ -147,3 +147,59 @@ float lookupVoltageDropFactor(float csa)
     size_t l = sizeof(data) / sizeof(data[0]);
     return searchData(&data, l, csa, 1);
 }
+
+// Lookup possible size of CPC given line CSA
+float lookupCPCSize(float csa)
+{
+    struct CableData data[] = {
+        {1.0, 1.0},
+        {1.5, 1.0, 1.5},
+        {2.5, 1.0, 1.5, 2.5},
+        {4, 1.5, 2.5, 4},
+        {6, 2.5, 4, 6},
+        {10, 4, 6, 10},
+        {16, 6, 10, 16},
+    };
+
+    size_t l = sizeof(data) / sizeof(data[0]);
+
+    // Add logic to use higher field indexes if the CPC is not sufficient
+    return searchData(&data, l, csa, 1);
+}
+
+// Lookup R1R2 value given CPC CSA
+float lookupR1R2(float csa)
+{
+    // Fields in the struct are based off of the respective field of cpc CSAs
+    struct CableData data[] = {
+        {1.0, 36.20},
+        {1.5, 30.2, 24.2},
+        {2.5, 25.51, 19.51, 14.82},
+        {4, 16.71, 12.02, 9.22},
+        {6, 10.49, 7.69, 6.16},
+        {10, 6.44, 4.91, 3.66},
+        {16, 4.23, 2.98, 2.30},
+    };
+
+    size_t l = sizeof(data) / sizeof(data[0]);
+
+    // Add logic to use higher field indexes if the CPC is not sufficient
+    return searchData(&data, l, csa, 1);
+}
+
+float lookupDisconnectionTime(float fuse)
+{
+    return 0.1;
+}
+
+// Select K based on thermoplastic/thermosetting
+float lookupKFactor(int cable_type_field)
+{
+    struct CableData data[] = {
+        {0.0, 115, 130}};
+
+    size_t l = sizeof(data) / sizeof(data[0]);
+
+    // Add logic to use higher field indexes if the CPC is not sufficient
+    return searchData(&data, l, 0.0, cable_type_field);
+}

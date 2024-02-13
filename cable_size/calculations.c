@@ -1,6 +1,7 @@
 #include "cable_data.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 #include "calculations.h"
 
 float calculateDesignCurrent(int power)
@@ -32,4 +33,30 @@ float calculateVoltageDrop(float csa, float designCurrent, float length)
 
     return (factor * designCurrent * length) /
            1000;
+}
+
+float calculateZs(float csa, float z_e, struct Installation *installation)
+{
+    // Determine r1_r2 correction factor
+    float r1r2_correction = 1 + (0.004 * (installation->amb_temp - 20));
+
+    // Include calculation for length and 70 degree correction factor
+    float r1_r2 = lookupR1R2(csa);
+    float r1_r2_final = ((r1_r2 * r1r2_correction) * installation->length * 1.2) / 1000;
+
+    return (z_e + r1_r2_final);
+}
+
+float calculateAdiabaticEquation(float z_s)
+{
+    // Lookup disconnection time
+    float t = lookupDisconnectionTime(1.0);
+
+    // Lookup k factor
+    float k = lookupKFactor(THERMOPLASTIC);
+
+    // Determine PFC
+    float i = SUPPLY_VOLTAGE / z_s;
+
+    return (sqrt((i * i) * t) / k);
 }

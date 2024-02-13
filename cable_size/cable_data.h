@@ -24,4 +24,12 @@ float lookupCableSize(float currentDemand, int ref);
 
 float lookupVoltageDropFactor(float csa);
 
+float lookupCPCSize(float csa);
+
+float lookupR1R2(float csa);
+
+float lookupDisconnectionTime(float fuse);
+
+float lookupKFactor(int cable_type_field);
+
 #endif
