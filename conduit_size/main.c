@@ -33,17 +33,32 @@ struct Factors TABLE_E3[] = {
 // Use the # of bends as an identifier
 struct ConduitFactors TABLE_E4[] = {
   {0,
-    {4, {{16, 188}, {20, 370}}},
-    {5, {{16, 188}, {20, 370}}}
+    {
+      {4, {{16, 188}, {20, 370}}},
+      {5, {{16, 188}, {20, 370}}}
+    }
   },
   {1,
-    {1, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
-    {1.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
-    {2, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
-    {2.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}}
+    {
+      {1, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {1.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {2, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {2.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {3, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {3.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {4, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {4.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}}
+    }
+  },
+  {2,
+    {
+      {1, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {1.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {2, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}},
+      {2.5, {{16, 188}, {20, 303}, {25, 543}, {32, 947}}}
+    }
   }
 };
- 
 
 // Function to output the sizes supported for cable CSA
 char* supported_sizes(struct Factors *data, size_t size) {
@@ -117,19 +132,17 @@ int main(int argc, char *argv[])
 
     // Lookup circuits based on bends
     conduit_factor = getConduitFactor(TABLE_E4, e4_size, bends, length, conduit_diameter);
-    if (conduit_factor == 0) {
-      return 1;
-    }
-    printf("\nConduit Factor: %d", cable_factor);
+    printf("\nConduit Factor: %d", conduit_factor);
   }
 
   // Error if conduit or cable size is not supported
   if (cable_factor == 0 || conduit_factor == 0) {
     printf("\nInvalid cable CSA or Conduit Diameter");
-    printf("\nSupported CSA sizes: %s", supported_sizes(TABLE_E1, e1_size));
+    printf("\n\nSupported CSA sizes: %s", supported_sizes(TABLE_E1, e1_size));
+    printf("\nSupported Conduit sizes: %s", supported_sizes(TABLE_E2, e2_size));
     return 1;
   }
 
-  printf("Cable Count: %d", (conduit_factor/cable_factor));
+  printf("\nCable Count: %d", (conduit_factor/cable_factor));
   return 0;
 }

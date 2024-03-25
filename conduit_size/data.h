@@ -22,8 +22,6 @@ struct ConduitFactors
 };
 
 int searchData(struct Factors *data, size_t size, float key);
-struct Factors* getConduitFactors(struct CircuitFactors *data, size_t size, float value);
-struct CircuitFactors* getCircuitFactors(struct ConduitFactors *data, size_t size, int value);
 int getConduitFactor(struct ConduitFactors *data, size_t size, int bends, float length, float conduit_csa);
 
 #endif
